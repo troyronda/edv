@@ -1,0 +1,216 @@
+consumes:
+- application/json
+definitions:
+  DataVaultConfiguration:
+    properties:
+      controller:
+        type: string
+        x-go-name: Controller
+      delegator:
+        type: string
+        x-go-name: Delegator
+      hmac:
+        $ref: '#/definitions/IDTypePair'
+      invoker:
+        type: string
+        x-go-name: Invoker
+      kek:
+        $ref: '#/definitions/IDTypePair'
+      referenceId:
+        type: string
+        x-go-name: ReferenceID
+      sequence:
+        format: int64
+        type: integer
+        x-go-name: Sequence
+    title: DataVaultConfiguration represents a Data Vault Configuration.
+    type: object
+    x-go-package: github.com/trustbloc/edv/pkg/restapi/models
+  IDTypePair:
+    properties:
+      id:
+        type: string
+        x-go-name: ID
+      type:
+        type: string
+        x-go-name: Type
+    title: IDTypePair represents an ID+type pair.
+    type: object
+    x-go-package: github.com/trustbloc/edv/pkg/restapi/models
+  Query:
+    properties:
+      equals:
+        type: string
+        x-go-name: Value
+      index:
+        type: string
+        x-go-name: Name
+    title: Query represents a name+value pair that can be used to query the encrypted
+      indices for specific data.
+    type: object
+    x-go-package: github.com/trustbloc/edv/pkg/restapi/models
+  StructuredDocument:
+    properties:
+      content:
+        additionalProperties:
+          type: object
+        type: object
+        x-go-name: Content
+      id:
+        type: string
+        x-go-name: ID
+      meta:
+        additionalProperties:
+          type: object
+        type: object
+        x-go-name: Meta
+    title: StructuredDocument represents a Structured Document.
+    type: object
+    x-go-package: github.com/trustbloc/edv/pkg/restapi/models
+info:
+  license:
+    name: 'SPDX-License-Identifier: Apache-2.0'
+  title: EDV REST API.
+  version: 0.1.0
+paths:
+  /encrypted-data-vaults:
+    post:
+      operationId: createVaultReq
+      parameters:
+      - in: body
+        name: NewVaultRequest
+        schema:
+          $ref: '#/definitions/DataVaultConfiguration'
+      responses:
+        "201":
+          $ref: '#/responses/createVaultRes'
+        default:
+          $ref: '#/responses/genericError'
+      summary: Creates a new data vault.
+  /encrypted-data-vaults/{vaultID}/documents:
+    post:
+      operationId: createDocumentReq
+      parameters:
+      - in: path
+        name: vaultID
+        required: true
+        type: string
+        x-go-name: VaultID
+      - in: body
+        name: NewDocument
+        schema:
+          $ref: '#/definitions/StructuredDocument'
+      responses:
+        "201":
+          $ref: '#/responses/createDocumentRes'
+        default:
+          $ref: '#/responses/genericError'
+      summary: Stores an encrypted document.
+  /encrypted-data-vaults/{vaultID}/documents/{docID}:
+    get:
+      operationId: readDocumentReq
+      parameters:
+      - in: path
+        name: vaultID
+        required: true
+        type: string
+        x-go-name: VaultID
+      - in: path
+        name: docID
+        required: true
+        type: string
+        x-go-name: DocID
+      responses:
+        "201":
+          $ref: '#/responses/readDocumentRes'
+        default:
+          $ref: '#/responses/genericError'
+      summary: Retrieves an encrypted document.
+  /encrypted-data-vaults/{vaultID}/queries:
+    post:
+      operationId: queryVaultReq
+      parameters:
+      - in: path
+        name: vaultID
+        required: true
+        type: string
+        x-go-name: VaultID
+      - in: body
+        name: QueryRequest
+        schema:
+          $ref: '#/definitions/Query'
+      responses:
+        "200":
+          $ref: '#/responses/queryVaultRes'
+        default:
+          $ref: '#/responses/genericError'
+      summary: Queries a data vault using encrypted indices.
+  /logspec:
+    get:
+      description: 'Format: ModuleName1=Level1:ModuleName2=Level2:ModuleNameN=LevelN:AllOtherModuleDefaultLevel'
+      operationId: getLogSpecReq
+      responses:
+        "200":
+          $ref: '#/responses/getLogSpecRes'
+        default:
+          $ref: '#/responses/emptyRes'
+      summary: Gets the current log specification.
+    put:
+      description: Note that this will not work properly if a module name contains
+        an '=' character.
+      operationId: changeLogSpecReq
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          properties:
+            spec:
+              description: The new log specification
+              example: module1=debug:module2=critical:error
+              type: string
+              x-go-name: Spec
+          required:
+          - spec
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/emptyRes'
+        default:
+          $ref: '#/responses/genericError'
+      summary: |-
+        Changes the current log specification.
+        Format: ModuleName1=Level1:ModuleName2=Level2:ModuleNameN=LevelN:AllOtherModuleDefaultLevel
+        Valid log levels: critical,error,warn,info,debug
+produces:
+- application/json
+responses:
+  createDocumentRes:
+    description: createDocumentRes model
+    headers:
+      Location:
+        type: string
+  createVaultRes:
+    description: createVaultRes model
+    headers:
+      Location:
+        type: string
+  emptyRes:
+    description: emptyRes model
+  genericError:
+    description: genericError model
+  getLogSpecRes:
+    description: getLogSpecRes model
+    headers:
+      spec:
+        type: string
+  queryVaultRes:
+    description: queryVaultRes model
+  readDocumentRes:
+    description: readDocumentRes model
+schemes:
+- http
+swagger: "2.0"
+servers:
+  - description: TrustBloc Testnet (sandbox)
+    url: https://sds.sandbox.trustbloc.dev
+
